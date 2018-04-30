@@ -22,7 +22,7 @@ def affine_forward(x, w, b):
     """
     out = None
     ###########################################################################
-    # Implement the affine forward pass. Store the result in out. You   #
+    # TODO: Implement the affine forward pass. Store the result in out. You   #
     # will need to reshape the input into rows.                               #
     ###########################################################################
     N = x.shape[0]
