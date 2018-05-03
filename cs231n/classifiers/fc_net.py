@@ -101,8 +101,8 @@ class TwoLayerNet(object):
         # automated tests, make sure that your L2 regularization includes a factor #
         # of 0.5 to simplify the expression for the gradient.                      #
         ############################################################################
-        data_loss, dscores = softmax_loss(scores, y)
-        reg_loss = 0.5 * self.reg * (np.sum(W1**2) + np.sum(W2**2))
+        data_loss, _ = softmax_loss(scores, y)
+        reg_loss = 0.5 * self.reg * (np.sum(self.params['W1'] ** 2) + np.sum(self.params['W2'] ** 2))
         loss = data_loss + reg_loss
         ############################################################################
         #                             END OF YOUR CODE                             #
@@ -169,7 +169,16 @@ class FullyConnectedNet(object):
         # beta2, etc. Scale parameters should be initialized to one and shift      #
         # parameters should be initialized to zero.                                #
         ############################################################################
-        pass
+        layer_input_dim = input_dim
+        for i, hidden_dim in enumerate(hidden_dims):
+            self.params['W' + str(i + 1)] = weight_scale * np.random.randn(layer_input_dim, hidden_dim)
+            self.params['b' + str(i + 1)] = weight_scale * np.zeros(hidden_dim)
+            if self.use_batchnorm:
+                self.params['gamma' + str(i + 1)] = np.ones(hidden_dim)
+                self.params['beta' + str(i + 1)] = np.zeros(hidden_dim)
+            layer_input_dim = hidden_dim
+        self.params['W' + str(self.num_layers)] = weight_scale * np.random.randn(layer_input_dim, num_classes)
+        self.params['b' + str(self.num_layers)] = weight_scale * np.zeros(num_classes)
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
