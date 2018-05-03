@@ -80,7 +80,7 @@ class TwoLayerNet(object):
         # class scores for X and storing them in the scores variable.              #
         ############################################################################
         hidden_layer, first_cache = affine_relu_forward(X, self.params['W1'], self.params['b1'])
-        scores, second_cache = affine_relu_forward(hidden_layer, self.params['W2'], self.params['b2'])
+        scores, second_cache = affine_forward(hidden_layer, self.params['W2'], self.params['b2'])
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
@@ -103,9 +103,7 @@ class TwoLayerNet(object):
         data_loss, dout = softmax_loss(scores, y)
         reg_loss = 0.5 * self.reg * (np.sum(self.params['W1'] ** 2) + np.sum(self.params['W2'] ** 2))
         loss = data_loss + reg_loss
-
-        dhidden, grads['W2'], grads['b2'] = affine_backward(dout,
-                                                            )
+        dhidden, grads['W2'], grads['b2'] = affine_backward(dout, second_cache)
         dX, grads['W1'], grads['b1'] = affine_relu_backward(dhidden, first_cache)
         grads['W1'] += self.reg * self.params['W1']
         grads['W2'] += self.reg * self.params['W2']
