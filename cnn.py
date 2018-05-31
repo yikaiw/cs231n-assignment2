@@ -39,7 +39,7 @@ class Network(object):
         return out
     
     def cnn(self, X_inputs):
-        with tf.variable_scope('ConvNet', reuse=reuse):
+        with tf.variable_scope('ConvNet'):
             # TF Estimator input is a dict, in case of multiple inputs
 
             # Reshape to match picture format [Height x Width x Channel]
@@ -62,10 +62,11 @@ class Network(object):
             # Fully connected layer (in tf contrib folder for now)
             fc1 = tf.layers.dense(fc1, 1024)
             # Apply Dropout (if is_training is False, dropout is not applied)
-            fc1 = tf.layers.dropout(fc1, rate=dropout, training=is_training)
+            fc1 = tf.layers.dropout(fc1, rate=self.keep_prob, training=self.training)
 
             # Output layer, class prediction
-            out = tf.layers.dense(fc1, n_classes)
+            out = tf.layers.dense(fc1, config.class_num)
+            return out
             
     def optimize(self, logits, labels):
         loss = tf.losses.softmax_cross_entropy(onehot_labels=labels, logits=logits)
