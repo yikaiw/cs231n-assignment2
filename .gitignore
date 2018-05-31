@@ -14,7 +14,11 @@ data/
 checkpoints/
 tfrecord/
 __pycache__/
-
+nohup.out
+logs/
+cs231n/im2col_cython.cpython-36m-x86_64-linux-gnu.so
+.ipynb_checkpoints/
+cs231n/data*
 # gradle
 .gradle/
 gradle-app.setting
