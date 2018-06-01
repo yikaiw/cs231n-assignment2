@@ -123,10 +123,11 @@ def main():
     loss_list = []
     train_accuracy_list = []
     val_accuracy_list = []
+    test_accuracy_list = []
     step = 0
 
     train_writer = tf.summary.FileWriter('logs/train@' + current_time, sess.graph)
-    val_writer = tf.summary.FileWriter('logs/test@' + current_time, sess.graph)
+    val_writer = tf.summary.FileWriter('logs/valid@' + current_time, sess.graph)
     summary_op = tf.summary.merge_all()
 
     print('Start training:')
@@ -137,20 +138,17 @@ def main():
         y_train_data = y_train[permutation]
         data_idx = 0
         while data_idx < train_len - 1:
-            X_train_batch = X_train_data[
-                data_idx: np.clip(data_idx + config.batch_size, 0, train_len - 1)]
-            y_train_batch = y_train_data[
-                data_idx: np.clip(data_idx + config.batch_size, 0, train_len - 1)]
+            X_train_batch = X_train_data[data_idx: np.clip(data_idx + config.batch_size, 0, train_len - 1)]
+            y_train_batch = y_train_data[data_idx: np.clip(data_idx + config.batch_size, 0, train_len - 1)]
             data_idx += config.batch_size
 
-            loss, _, train_accuracy, summary = sess.run(
-                [nn.loss, nn.optimizer, nn.accuracy, summary_op],
-                {nn.X_inputs: X_train_batch, nn.y_inputs: y_train_batch,
-                 nn.keep_prob: config.keep_prob, nn.training: True})
+            loss, _, train_accuracy, summary, lr = sess.run(
+                [nn.loss, nn.optimizer, nn.accuracy, summary_op, nn.learning_rate],
+                {nn.X_inputs: X_train_batch, nn.y_inputs: y_train_batch, nn.keep_prob: config.keep_prob, nn.training: True})
             loss_list.append(loss)
             train_accuracy_list.append(train_accuracy)
-            print('>> At step %i: loss = %.2f, train accuracy = %.3f%%' 
-                  % (step, loss, train_accuracy * 100))
+            print('>> At step %i: loss = %.2f, train accuracy = %.3f%%, learning rate = %.7f' 
+                  % (step, loss, train_accuracy * 100, lr))
             train_writer.add_summary(summary, step)
             step += 1
 
@@ -159,16 +157,25 @@ def main():
         val_accuracy_list.append(accuracy)
         print('For epoch %i: valid accuracy = %.2f%%\n' % (epoch, accuracy * 100))
         val_writer.add_summary(summary, epoch)
+        
+    test_len = len(y_test)
+    data_idx = 0
+    while data_idx < test_len - 1:
+        X_test_batch = X_test[data_idx: np.clip(data_idx + config.batch_size, 0, test_len - 1)]
+        y_test_batch = y_test[data_idx: np.clip(data_idx + config.batch_size, 0, test_len - 1)]
+        data_idx += config.batch_size
 
-    accuracy, summary = sess.run([nn.accuracy, summary_op],
-        {nn.X_inputs: X_test, nn.y_inputs: y_test, nn.keep_prob: 1.0, nn.training: False})
-    print('Test accuracy = %.2f%%\n' % accuracy * 100)
+        test_accuracy = sess.run(nn.accuracy, 
+            {nn.X_inputs: X_test_batch, nn.y_inputs: y_test_batch, nn.keep_prob: 1.0, nn.training: False})
+        test_accuracy_list.append(test_accuracy)
 
+        
     save_path = saver.save(sess, model_save_path, global_step=step)
     print('Model saved in file: %s' % save_path)
     sess.close()
     train_writer.close()
-    test_writer.close()
+    val_writer.close()
+    print('Test accuracy = %.2f%%\n' % (np.mean(test_accuracy_list) * 100))
 
 
 if __name__ == '__main__':
